@@ -51,6 +51,53 @@ def get_bayer_pattern(file_path):
     return pattern , pattern_desc
 
 ########################################################################################################
+
+def get_cfa_mask_rggb( height , width):
+    cfa_mask = np.zeros((height , width))
+    
+    cfa_mask[0 : height: 2 , 0 : width : 2] = RED_POSITION
+    cfa_mask[1 : height : 2 , 1 : width : 2]  = BLUE_POSITION
+    cfa_mask[0 : height : 2 , 1 : width : 2] = GREEN_POSITION
+    cfa_mask[1 : height : 2, 0 : width : 2] = GREEN_POSITION
+    return cfa_mask
+    
+def get_cfa_mask_bggr( height , width):
+    cfa_mask = np.zeros((height , width))
+    
+    cfa_mask[0 : height: 2 , 0 : width : 2] = BLUE_POSITION
+    cfa_mask[1 : height : 2 , 1 : width : 2]  = RED_POSITION
+    cfa_mask[0 : height : 2 , 1 : width : 2] = GREEN_POSITION
+    cfa_mask[1 : height : 2, 0 : width : 2] = GREEN_POSITION
+    return cfa_mask
+    
+def get_cfa_mask_grbg( height , width):
+    cfa_mask = np.zeros((height , width))
+    
+    cfa_mask[0 : height: 2 , 0 : width : 2] = GREEN_POSITION
+    cfa_mask[1 : height : 2 , 1 : width : 2]  = GREEN_POSITION
+    cfa_mask[0 : height : 2 , 1 : width : 2] = RED_POSITION
+    cfa_mask[1 : height : 2, 0 : width : 2] = BLUE_POSITION
+    return cfa_mask
+    
+def get_cfa_mask_gbrg( height , width):
+    cfa_mask = np.zeros((height , width))
+    
+    cfa_mask[0 : height: 2 , 0 : width : 2] = GREEN_POSITION
+    cfa_mask[1 : height : 2 , 1 : width : 2]  = GREEN_POSITION
+    cfa_mask[0 : height : 2 , 1 : width : 2] = BLUE_POSITION
+    cfa_mask[1 : height : 2, 0 : width : 2] = RED_POSITION
+    return cfa_mask
+    
+def get_cfa_mask_rgbg( height , width):
+    cfa_mask = np.zeros((height , width))
+    
+    cfa_mask[0 : height: 2 , 0 : width : 2] = RED_POSITION
+    cfa_mask[1 : height : 2 , 1 : width : 2]  = GREEN_POSITION
+    cfa_mask[0 : height : 2 , 1 : width : 2] = GREEN_POSITION
+    cfa_mask[1 : height : 2, 0 : width : 2] = BLUE_POSITION
+    return cfa_mask
+
+########################################################################################################
 def get_cfa_mask_rgbg(height , width):
     cfa_mask = np.zeros((height , width))
     
@@ -119,7 +166,7 @@ def get_individual_channels_rgbg(bayer_image):
     green[1 : height : 2 , 1 : width : 2] = bayer_image[1 : height : 2 , 1 : width : 2]
     
     return red , green , blue
-    
+
 def get_individual_channels_grbg(bayer_image):
     height = len(bayer_image)
     width = len(bayer_image[0])

@@ -1,5 +1,3 @@
-
-
 import numpy as np
 from enum import Enum
 import os
@@ -23,13 +21,11 @@ from Utils.utils import (
     get_individual_channels_gbrg,
     get_individual_channels_rgbg
 )
-
 from Utils.constants import (
     RED_POSITION,
     BLUE_POSITION, 
     GREEN_POSITION
 )
-
 
 """
 
@@ -46,6 +42,16 @@ from Utils.constants import (
         
 """
 
+#########################################################################################################################################################
+
+class BayerPattern(Enum):
+    BGGR = 1
+    GBRG = 2
+    GRBG = 3
+    RGGB = 4
+
+#########################################################################################################################################################
+
 class GradientDirection(Enum):
     Vertical = 0
     Horizontal = 1
@@ -57,8 +63,6 @@ def corner_pixel_calculations(ne_left , ne_right , ne_top , ne_bottom):
     interpolated_value = np.mean(neighbors) if neighbors else 0
     return interpolated_value
 
-###############################################################################################################################################################################################
-
 # High Order Extrapolation
 
 def estimate_green_planes_high_order_extrapolation( bayer_image : np.ndarray,
@@ -68,7 +72,7 @@ def estimate_green_planes_high_order_extrapolation( bayer_image : np.ndarray,
                                                     red : np.ndarray | None = None , 
                                                     green : np.ndarray | None = None , 
                                                     blue : np.ndarray | None = None , 
-                                                    corner_pixel_calculations = corner_pixel_calculations , 
+                                                    corner_pixel_calculations = corner_pixel_calculations,
                                                     margin : int = 3,
                                                     out_dtype = np.float32,):
     """
@@ -552,6 +556,7 @@ def red_plane(cfa_mask : np.ndarray ,
     )
     
     ##############################################################################################################################################
+    
     write_green_sites = missing_red & at_green & (cnt_green_sites > 0)
     write_blue_sites  = missing_red & at_blue  & (cnt_blue_sites  > 0)
 
@@ -579,7 +584,7 @@ def weighted_median_green_plane(green : np.ndarray | None = None ,
         2. Uses an edge orientation map to classify pixels and select appropriate filter weights (horizontal or vertical).
         3. Stacks green estimates from neighboring pixels (left, right, top, bottom).
         4. Sorts the estimates and their corresponding weights.
-        5. Computes the cumulative sum of weights to find the weighted median position(s).
+        5. Computes the cumulative sum of weights to find the weighted median positions.
         6. Calculates the weighted median value for each pixel.
         7. Replaces missing green values with the computed weighted median, preserving existing green values.
     """
@@ -635,7 +640,6 @@ def green_plane(bayer_image , edge_orientation_map ,cfa_mask , red , green , blu
                                 weights_vertical = (1 , 1 , 2 , 2))
     return green
 
-###############################################################################################################################################################################################
 
 def calculate_edge_orientation_map(
     bayer_image: np.ndarray,
@@ -644,6 +648,7 @@ def calculate_edge_orientation_map(
     blue: np.ndarray,
     cfa_mask: np.ndarray
 ) -> np.ndarray:
+    
     """
         Algorithm
         =========
@@ -732,30 +737,38 @@ def calculate_edge_orientation_map(
 
 ###############################################################################################################################################################################################
 
-def HighOrderInterpolationDemosaic(bayer_image , bayer_pattern = b'RGGB' , input_bit_depth = 12):
-
+def HighOrderInterpolationDemosaic(bayer_image , bayer_pattern , input_bit_depth = 12):
+    """
+        1. Demosaic Algorithm using High Order Interpoaltion and Extrapolation.
+        2. Create RGB Image of same input bit depth.
+        3. Max Input Bit Depth should be 16.
+    """
     height = len(bayer_image)
     width  = len(bayer_image[0])
-   
+
+    data_type = None
+
+    data_type = np.uint16 if input_bit_depth > 8 else np.uint8
+    
+
     ###############################################################################################################################################
     
     cfa_mask = None
     red , green , blue = None , None , None 
-
-    if bayer_pattern ==  b'RGGB':
+    if bayer_pattern ==b'RGGB':
         cfa_mask = get_cfa_mask_rggb(height , width)
         red , green , blue = get_individual_channels_rggb(bayer_image)
-    elif bayer_pattern == b'BGGR':
+    elif bayer_pattern ==b'BGGR':
         cfa_mask = get_cfa_mask_bggr(height , width)
         red , green , blue = get_individual_channels_bggr(bayer_image)
-    elif bayer_pattern == b'GBRG':
+    elif bayer_pattern ==b'GBRG':
         cfa_mask = get_cfa_mask_gbrg(height , width)
         red , green , blue = get_individual_channels_gbrg(bayer_image)
-    elif bayer_pattern == b'RGBG':
-        print("RGBG Pattern")
+    elif bayer_pattern ==b'RGBG':
         cfa_mask = get_cfa_mask_rgbg(height , width)
         red , green , blue = get_individual_channels_rgbg(bayer_image)
     else:
+        # Default to GRBG pattern
         cfa_mask = get_cfa_mask_grbg(height , width)
         red , green , blue = get_individual_channels_grbg(bayer_image)
     
@@ -763,13 +776,14 @@ def HighOrderInterpolationDemosaic(bayer_image , bayer_pattern = b'RGGB' , input
     
     
     edge_orientation_map = calculate_edge_orientation_map(bayer_image , red , green , blue , cfa_mask)
+
     green = green_plane(bayer_image ,edge_orientation_map , cfa_mask , red , green , blue ,  height , width)
     red = red_plane(cfa_mask , green , red)
     blue = blue_plane(cfa_mask  , green , blue)
     
     bgr_image = np.stack((blue , green , red ), axis=-1)
     max_value = (1 << input_bit_depth) - 1
-    bgr_image = np.clip(bgr_image , 0 , max_value).astype(np.uint16 , copy = False)
+    bgr_image = np.clip(bgr_image , 0 , max_value).astype(data_type , copy = False)
     return bgr_image
     
 ##################################################################################################################################################
