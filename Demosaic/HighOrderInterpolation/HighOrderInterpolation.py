@@ -7,8 +7,8 @@ import math
 import matplotlib.pyplot as plt
 import time
 
-# Add parent directory to path for Utils imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add parent directories to path for Utils imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from Utils.utils import (
     get_cfa_mask_rggb,
     get_cfa_mask_bggr,

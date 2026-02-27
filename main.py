@@ -1,10 +1,12 @@
 ###############################################################################################################
 
-import HighOrderInterpolation as hoi
+from Demosaic.HighOrderInterpolation import HighOrderInterpolationDemosaic
 import sys
 import os
 import numpy as np
 import cv2
+from AWB.grayWorld import gray_world
+
 ###############################################################################################################
 
 # Add the parent directory to the path to access Utils
@@ -19,18 +21,19 @@ from Utils.constants import RED_POSITION, BLUE_POSITION, GREEN_POSITION
 ###############################################################################################################
 
 if __name__ == "__main__":
-    raw_path = "../Data/nature.dng"
+    raw_path = os.path.join(os.path.dirname(__file__), "Data", "nature.dng")
     raw_image = read_dng_image(raw_path)
 
     # Get Bayer pattern
     pattern, pattern_desc = get_bayer_pattern(raw_path)
-    bgr_image = hoi.HighOrderInterpolationDemosaic(raw_image, pattern_desc )
+    bgr_image = HighOrderInterpolationDemosaic(raw_image, pattern_desc )
 
     # Add white balance 
-    bgr_image = (bgr_image - np.min(bgr_image)) / (np.max(bgr_image) - np.min(bgr_image))
+    bgr_image = gray_world(bgr_image)
     
+
     # Apply gamma correction for better brightness
-    gamma = 0.5
+    gamma = 0.05
     gamma_corrected = np.power(bgr_image,  gamma)
     
     # Convert back to 8-bit
