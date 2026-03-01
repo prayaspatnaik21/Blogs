@@ -29,14 +29,32 @@
     - Assumption - Nearest known samples in a 2D plane to the missing value contains the most accurate information about that missing sample.
     - If one sample from the other side of the missing sample will produce a more accurate estimate if is along an edge.
     - Interpolate across the center to obtain more accurate estimates
-    - Formula - $G(x-1) = G(x-1) + \frac{1}{2}\big(B(x) - B(x-2)\big) - \frac{1}{8}\big(G(x+1) - 2G(x-1) + G(x-3)\big) - (2)$
+    - Formula
+        - $G(x-1) = G(x-1) + \frac{1}{2}\big(B(x) - B(x-2)\big) - \frac{1}{8}\big(G(x+1) - 2G(x-1) + G(x-3)\big) - (2)$
 
     - Look closely at equation $(1)$ and $(2)$
         - weights of $(B(x) - B(x-2))$ and $(G(x-3))$ has been reduced.
         - $G(x+1)$ is introduced into the equation.
         - Both $B(x-2)$ and $G(x-3)$ are further away from the sample pixel. It makes sense to decrease their weights in the equation.
-        - $G(x+1) is closer to the sample pixel and increasing the weight will produce a more accurate estimate.
+        - $G(x+1)$ is closer to the sample pixel and increasing the weight will produce a more accurate estimate.
         - Based on the presumption that the nearer sample contains more accurate information about the sample to be estimated when there is no edge.
 
 - Formula representation in Bayer Pattern
-    - ![8*8 Bayer Pattern](./images/grbg_bayer_pattern.png)
+    - ![8*8 Bayer Pattern](./images/bayer_pattern.jpg)
+    - High Order Extrapolation
+        - $G(45)(Left) = G(44) + \frac{3}{4}(B(45) - B(43)) - \frac{1}{4}(G(44) - G(42)) $
+        - $G(45)(Right) = G(46) + \frac{3}{4}(B(45) - B(47)) - \frac{1}{4}(G(46) - G(48)) $
+        - $G(45)(Top) = G(35) + \frac{3}{4}(B(45) - B(25)) - \frac{1}{4}(G(35) - G(15)) $
+        - $G(45)(Bottom) = G(55) + \frac{3}{4}(B(45) - B(65)) - \frac{1}{4}(G(55) - G(75)) $
+    
+    - High Order Interpolation
+        - $G(45)(Left) = G(44) + \frac{1}{2}(B(45) - B(43)) + \frac{1}{8}(G(46) - 2G(44) + G(42)) $
+        - $G(45)(Right) = G(46) + \frac{1}{2}(B(45) - B(47)) + \frac{1}{8}(G(44) - 2G(46) + G(48)) $
+        - $G(45)(Top) = G(35) + \frac{1}{2}(B(45) - B(25)) + \frac{1}{8}(G(55) - 2G(35) + G(15)) $
+        - $G(45)(Bottom) = G(55) + \frac{1}{2}(B(45) - B(65)) + \frac{1}{8}(G(35) - 2G(55) + G(75)) $
+    
+- Interpolation for the Red and Blue channels
+    - 
+
+
+    

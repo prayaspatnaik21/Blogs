@@ -51,7 +51,7 @@ import numpy as np
 """
 
 def gray_world(image : np.ndarray):
-
+    print(image.shape)
     if image is None:
         raise ValueError("Image is None")
 
@@ -79,6 +79,10 @@ def gray_world(image : np.ndarray):
     green_gain_coefficient = gray / green_channel_average
     red_gain_coefficient = gray / red_channel_average
 
+    print(f"Blue Gain Coefficient: {blue_gain_coefficient}")
+    print(f"Green Gain Coefficient: {green_gain_coefficient}")
+    print(f"Red Gain Coefficient: {red_gain_coefficient}")
+    
     # Convert to float for calculations to prevent overflow
     image_float = image.astype(np.float32)
     
@@ -92,5 +96,6 @@ def gray_world(image : np.ndarray):
     if np.issubdtype(image.dtype, np.integer):
         max_val = np.iinfo(image.dtype).max
         out = np.clip(out, 0, max_val)
+        print(max_val)
     
     return out.astype(image.dtype)

@@ -15,6 +15,22 @@ import matplotlib.pyplot as plt
 
 ########################################################################################################
 
+def find_bit_depth(file_path):
+    """
+    Find the bit depth of a DNG image.
+    
+    Args:
+        file_path (str): Path to the DNG file
+        
+    Returns:
+        int: Bit depth of image
+    """
+    with rawpy.imread(file_path) as raw:
+        bit_depth = raw.raw_image_visible.dtype.itemsize * 8
+    return bit_depth
+
+########################################################################################################
+
 def read_dng_image(file_path):
     """
     Read a DNG format image file.
@@ -246,5 +262,105 @@ def show_image(image):
 
 ########################################################################################################
 
+def show_histogram(image , bit_depth):
+    """
+    Display the histogram of an image with RGB channels shown separately.
+    Always uses 256 bins for consistent visualization.
+    """
+    import matplotlib.pyplot as plt
+    image_bit_depth = np.iinfo(image.dtype).bits
+    
+    if image_bit_depth == bit_depth:
+        # Always use 256 bins for consistent visualization
+        bins = 256
+        
+        # Check if image is color (3 channels) or raw (1 channel)
+        if len(image.shape) == 3 and image.shape[2] == 3:
+            # Color image - split into RGB channels (assuming BGR format from OpenCV)
+            blue_channel = image[:, :, 0]
+            green_channel = image[:, :, 1] 
+            red_channel = image[:, :, 2]
+            
+            plt.figure(figsize=(10, 6))
+            
+            # Plot histograms for each channel
+            plt.hist(red_channel.ravel(), bins=bins, range=(0, 2**bit_depth), 
+                    alpha=0.7, color='red', label='Red Channel')
+            plt.hist(green_channel.ravel(), bins=bins, range=(0, 2**bit_depth), 
+                    alpha=0.7, color='green', label='Green Channel')
+            plt.hist(blue_channel.ravel(), bins=bins, range=(0, 2**bit_depth), 
+                    alpha=0.7, color='blue', label='Blue Channel')
+            
+            plt.title(f"Histogram of Color Image with {bit_depth} bits (RGB Channels)")
+            plt.xlabel("Pixel Value")
+            plt.ylabel("Frequency")
+            plt.legend()
+            plt.grid(True, alpha=0.3)
+        else:
+            # Raw image - single channel
+            plt.figure(figsize=(10, 6))
+            plt.hist(image.ravel(), bins=bins, range=(0, 2**bit_depth), 
+                    alpha=0.8, color='gray', edgecolor='black')
+            plt.title(f"Histogram of Raw Image with {bit_depth} bits (Single Channel)")
+            plt.xlabel("Pixel Value")
+            plt.ylabel("Frequency")
+            plt.grid(True, alpha=0.3)
+        
+        # Set meaningful x-axis ticks for different bit depths
+        if bit_depth == 16:
+            max_val = 2**bit_depth
+            ticks = [0, max_val//4, max_val//2, 3*max_val//4, max_val]
+            tick_labels = ['0', '16K', '32K', '48K', '64K']
+            plt.xticks(ticks, tick_labels)
+        elif bit_depth == 12:
+            max_val = 2**bit_depth
+            ticks = [0, max_val//4, max_val//2, 3*max_val//4, max_val]
+            tick_labels = ['0', '1K', '2K', '3K', '4K']
+            plt.xticks(ticks, tick_labels)
+        elif bit_depth == 8:
+            plt.xticks([0, 64, 128, 192, 255])
+        
+        plt.show()
+    else:
+        print(f"The bit depth of the image is {image_bit_depth} , not {bit_depth}")
+
+
+def show_raw_histogram(raw_image, bit_depth):
+    """
+    Display histogram specifically for raw (single-channel) images.
+    """
+    import matplotlib.pyplot as plt
+    image_bit_depth = np.iinfo(raw_image.dtype).bits
+    
+    if image_bit_depth == bit_depth:
+        bins = 256
+        
+        plt.figure(figsize=(10, 6))
+        plt.hist(raw_image.ravel(), bins=bins, range=(0, 2**bit_depth), 
+                alpha=0.8, color='darkgray', edgecolor='black')
+        plt.title(f"Raw Image Histogram - {bit_depth} bits")
+        plt.xlabel("Pixel Value")
+        plt.ylabel("Frequency")
+        plt.grid(True, alpha=0.3)
+        
+        # Set meaningful x-axis ticks for different bit depths
+        if bit_depth == 16:
+            max_val = 2**bit_depth
+            ticks = [0, max_val//4, max_val//2, 3*max_val//4, max_val]
+            tick_labels = ['0', '16K', '32K', '48K', '64K']
+            plt.xticks(ticks, tick_labels)
+        elif bit_depth == 12:
+            max_val = 2**bit_depth
+            ticks = [0, max_val//4, max_val//2, 3*max_val//4, max_val]
+            tick_labels = ['0', '1K', '2K', '3K', '4K']
+            plt.xticks(ticks, tick_labels)
+        elif bit_depth == 8:
+            plt.xticks([0, 64, 128, 192, 255])
+        
+        plt.show()
+    else:
+        print(f"The bit depth of the image is {image_bit_depth} , not {bit_depth}")
+
+########################################################################################################
 
 ########################################################################################################
