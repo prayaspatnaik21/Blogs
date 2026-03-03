@@ -4,6 +4,7 @@ import rawpy
 import numpy as np
 from .constants import RED_POSITION , BLUE_POSITION , GREEN_POSITION
 import matplotlib.pyplot as plt
+import cv2
 ########################################################################################################
 
 """
@@ -362,5 +363,95 @@ def show_raw_histogram(raw_image, bit_depth):
         print(f"The bit depth of the image is {image_bit_depth} , not {bit_depth}")
 
 ########################################################################################################
+def showImage(image):
+    if image.shape[0] > 0 and image.shape[1] > 0:
+        cv2.imshow("Image", image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    else:
+        print(f"Image Shape Invalid : {image.shape[0]} , {image.shape[1]}")
 
+
+def show_image_grid(images, titles, max_cols=3):
+    """
+    Display multiple images in a grid layout with titles.
+    
+    Args:
+        images (list): List of images to display
+        titles (list): List of titles for each image (same length as images)
+        max_cols (int): Maximum number of columns per row (default: 3)
+    """
+    if len(images) != len(titles):
+        raise ValueError("Number of images must match number of titles")
+    
+    if not images:
+        print("No images to display")
+        return
+    
+    # Calculate grid dimensions
+    num_images = len(images)
+    cols = min(max_cols, num_images)
+    rows = (num_images + cols - 1) // cols  # Ceiling division
+    
+    # Get dimensions of first image to determine grid size
+    first_img = images[0]
+    if len(first_img.shape) == 3:
+        img_height, img_width = first_img.shape[:2]
+    else:
+        img_height, img_width = first_img.shape
+    
+    # Create grid canvas
+    grid_height = img_height * rows
+    grid_width = img_width * cols
+    grid = np.zeros((grid_height, grid_width, 3), dtype=np.uint8)
+    
+    # Place images in grid
+    for idx, (img, title) in enumerate(zip(images, titles)):
+        row = idx // cols
+        col = idx % cols
+        
+        # Convert image to 3-channel if needed
+        if len(img.shape) == 2:
+            # Convert to uint8 first
+            img_uint8 = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+            # Keep as grayscale by duplicating the single channel to all 3 channels
+            img_display = cv2.cvtColor(img_uint8, cv2.COLOR_GRAY2BGR)
+        else:
+            img_display = img.copy()
+        
+        # Ensure image is uint8 for display
+        if img_display.dtype != np.uint8:
+            img_display = cv2.normalize(img_display, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+        
+        # Calculate position in grid
+        y_start = row * img_height
+        y_end = y_start + img_height
+        x_start = col * img_width
+        x_end = x_start + img_width
+        
+        # Place image
+        grid[y_start:y_end, x_start:x_end] = img_display
+        
+        # Add title
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 0.6
+        font_thickness = 2
+        text_color = (255, 255, 255)  # White
+        background_color = (0, 0, 0)  # Black background
+        
+        # Get text size
+        (text_width, text_height), baseline = cv2.getTextSize(title, font, font_scale, font_thickness)
+        
+        # Draw background rectangle for title
+        title_y = y_start + 25
+        cv2.rectangle(grid, (x_start, title_y - text_height - 5), 
+                     (x_start + text_width + 10, title_y + 5), background_color, -1)
+        
+        # Draw title text
+        cv2.putText(grid, title, (x_start + 5, title_y), font, font_scale, text_color, font_thickness)
+    
+    # Display the grid
+    cv2.imshow("Image Grid", grid)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 ########################################################################################################
